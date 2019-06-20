@@ -1,6 +1,6 @@
 #!/bin/bash
 # version: 1.1
-# date: 20190509
+# date: 20190603
 # author: winthcloud
 # description: build image and apply to the k8s cluster
 basedir=${1}
@@ -17,9 +17,8 @@ kubeconf=${11}
 containerPort=${12}
 urlPath=${13}
 k8sMaster=${14}
-logdirname=${15}
-Dockerfile=${16}
-ENV=${17}
+Dockerfile=${15}
+ENV=${16}
 
 
 [ -d "${basedir}/${SaveProjectDirName}" ] || mkdir ${basedir}/${SaveProjectDirName}
@@ -35,7 +34,6 @@ ENV=${17}
 [ -z "$containerPort" ] && echo "You need to input containerPort" && exit 20
 [ -z "$urlPath" ] && echo "You need to input urlpath" && exit 20
 [ -z "$k8sMaster" ] && echo "You need to input k8sMaster" && exit 20
-[ -z "${logdirname}" ] && logdirname=${ProjectName}
 
 build_image(){
   if [ -z "${Dockerfile}" ]; then
@@ -89,41 +87,74 @@ spec:
       imagePullSecrets:
       - name: sxkj-harbor
       containers:
-      - name: ${ProjectName}
-        env:
-        - name: "TZ"
-          value: "CST-8"
+      - name: ${ProjectName}-service1
         image: ${harbor}/project/${ProjectName}:${TAG}
         imagePullPolicy: Always
+        command: ["/bin/bash"]
+        args: ["-c","java -jar water-service1-0.0.1-SNAPSHOT.jar &> /data/logs/electronic-hardware-chargepal/water-service1.log"]
         volumeMounts:
         - name: mysql-cred
           mountPath: "/projected-volume/conf/"
         - name: logs
-          mountPath: /data/logs/${logdirname}/
+          mountPath: /data/logs/electronic-hardware-chargepal/
         ports:
         - containerPort: ${containerPort}
           protocol: TCP
         livenessProbe:
           tcpSocket:
             port: ${containerPort}
-          initialDelaySeconds: 30
+          initialDelaySeconds: 50
           timeoutSeconds: 5
-        readinessProbe:
-          initialDelaySeconds: 30
-          successThreshold: 2
-          timeoutSeconds: 5
-          failureThreshold: 2
-          periodSeconds: 5
-          httpGet: 
-            path: ${urlPath}
-            port: ${containerPort}
+#        readinessProbe:
+#          initialDelaySeconds: 50
+#          successThreshold: 2
+#          timeoutSeconds: 5
+#          failureThreshold: 2
+#          periodSeconds: 5
+#          httpGet: 
+#            path: ${urlPath}
+#            port: ${containerPort}
         resources:
           limits:
             cpu: ${CPU}
             memory: ${MEMORY}
           requests:
-            cpu: 1000m
-            memory: 1024Mi
+            cpu: 2000m
+            memory: 2048Mi
+      - name: ${ProjectName}-service2
+        image: ${harbor}/project/${ProjectName}:${TAG}
+        imagePullPolicy: Always
+        command: ["/bin/bash"]
+        args: ["-c","java -jar water-service2-0.0.1-SNAPSHOT.jar &> /data/logs/electronic-hardware-chargepal/water-service2.log"]
+        volumeMounts:
+        - name: mysql-cred
+          mountPath: "/projected-volume/conf/"
+        - name: logs
+          mountPath: /data/logs/electronic-hardware-chargepal/
+        ports:
+        - containerPort: 8402
+          protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: 8402
+          initialDelaySeconds: 50
+          timeoutSeconds: 5
+#        readinessProbe:
+#          initialDelaySeconds: 50
+#          successThreshold: 2
+#          timeoutSeconds: 5
+#          failureThreshold: 2
+#          periodSeconds: 5
+#          httpGet: 
+#            path: /small/swagger-ui.html
+#            port: 8402
+        resources:
+          limits:
+            cpu: ${CPU}
+            memory: ${MEMORY}
+          requests:
+            cpu: 2000m
+            memory: 2048Mi
       - name: filebeat
         image: ${harbor}/app/filebeat:v6.6.1
         command:
