@@ -91,7 +91,7 @@ spec:
         image: ${harbor}/project/${ProjectName}:${TAG}
         imagePullPolicy: Always
         command: ["/bin/bash"]
-        args: ["-c","java -jar water-service1-0.0.1-SNAPSHOT.jar &> /data/logs/electronic-hardware-chargepal/water-service1.log"]
+        args: ["-c","java -jar sxdz_charge_service-0.0.1-SNAPSHOT.jar &> /data/logs/electronic-hardware-chargepal/sxdz-charge-service.log"]
         volumeMounts:
         - name: mysql-cred
           mountPath: "/projected-volume/conf/"
@@ -125,7 +125,7 @@ spec:
         image: ${harbor}/project/${ProjectName}:${TAG}
         imagePullPolicy: Always
         command: ["/bin/bash"]
-        args: ["-c","java -jar water-service2-0.0.1-SNAPSHOT.jar &> /data/logs/electronic-hardware-chargepal/water-service2.log"]
+        args: ["-c","java -jar sxdz_charge_management-0.0.1-SNAPSHOT.jar &> /data/logs/electronic-hardware-chargepal/sxdz-charge-management.log"]
         volumeMounts:
         - name: mysql-cred
           mountPath: "/projected-volume/conf/"
